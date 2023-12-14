@@ -1,1 +1,5 @@
-
+ langchain
+ faiss-cpu
+ openai
+ unstructured
+ tiktoken
