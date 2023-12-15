@@ -10,8 +10,7 @@ from langchain.embeddings import OpenAIEmbeddings
 app = Flask(__name__)
 
 # Set OpenAI API key
-os.environ["OPENAI_API_KEY"] = "Paste Api Here"
-
+os.environ["OPENAI_API_KEY"] = "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"
 # Your URLs for document loading
 urls = ["https://coal.nic.in/acts-rules-policies"]
 loaders = UnstructuredURLLoader(urls)
