@@ -20,8 +20,7 @@ vectorstore_OpenAI.save_local("faiss_store")
 kal =FAISS.load_local("faiss_store", OpenAIEmbeddings())
 llm=OpenAI(temperature=0, model_name='text-davinci-003')
 chain = RetrievalQAWithSourcesChain.from_llm(llm=llm, retriever=kal.as_retriever())
-ans=chain({"question": "What is mining?"}, return_only_outputs=True)
-print(ans["ans"])
+chain({"question": "What is mining?"}, return_only_outputs=True)
 
 
 
