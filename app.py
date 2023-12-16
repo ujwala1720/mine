@@ -7,35 +7,38 @@ from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.llms import OpenAI
 from langchain.embeddings import OpenAIEmbeddings
 
-app = Flask(_name_)
+app = Flask(__name__)
+
+# Set OpenAI API key
+os.environ["OPENAI_API_KEY"] = "paste api"
+# Your URLs for document loading
+urls = ["https://coal.nic.in/acts-rules-policies"]
+loaders = UnstructuredURLLoader(urls)
+data = loaders.load()
+text_splitter = CharacterTextSplitter(separator='\n', chunk_size=1000, chunk_overlap=200)
+docs = text_splitter.split_documents(data)
+embeddings = OpenAIEmbeddings()
+vectorstore_OpenAI = FAISS.from_documents(docs, embeddings)
+vectorstore_OpenAI.save_local("faiss_store")
+
+# Load FAISS store and OpenAI LLM
+kal = FAISS.load_local("faiss_store", OpenAIEmbeddings())
+llm = OpenAI(temperature=0, model_name='text-davinci-003')
+chain = RetrievalQAWithSourcesChain.from_llm(llm=llm, retriever=kal.as_retriever())
+
 
 @app.route('/')
 def index():
-    return render_template('main_page.html')
-@app.route('/main')
-def second():
-    return render_template('botinterface.html')
+    return render_template('minbot23.html')
 
-@app.route('/process_input', methods=['POST'])
-def process_input():
-    z = request.json.get('user_input', '')
 
-    os.environ["OPENAI_API_KEY"] = "paste api key"
-    urls = ["https://coal.nic.in", "https://mines.gov.in"]
-    loaders = UnstructuredURLLoader(urls)
-    data = loaders.load()
-    text_splitter = CharacterTextSplitter(separator='\n', chunk_size=1000, chunk_overlap=200)
-    docs = text_splitter.split_documents(data)
-    embeddings = OpenAIEmbeddings()
-    vectorstore_OpenAI = FAISS.from_documents(docs, embeddings)
-    vectorstore_OpenAI.save_local("faiss_store")
-    kal = FAISS.load_local("faiss_store", OpenAIEmbeddings())
-    llm = OpenAI(temperature=0, model_name='text-davinci-003')
-    chain = RetrievalQAWithSourcesChain.from_llm(llm=llm, retriever=kal.as_retriever())
-    ans = chain({"question": z}, return_only_outputs=True)
-    response = ans['answer']
-    return jsonify({'response': response})
+@app.route('/ask_question', methods=['POST'])
+def ask_question():
+    if request.method == 'POST':
+        question = request.json['question']
+        answer = chain({"question": question}, return_only_outputs=True)
+        return jsonify({'answer': answer})
 
-if _name_ == '_main_':
+
+if __name__ == '__main__':
     app.run(debug=True)
-
